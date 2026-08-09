@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, viewport-fit=cover">
+<title>NEXPOL · Tema 8 - La Dirección General de la Policía</title>
+<style>
+  :root{
+    --navy-950:#0a1128;
+    --navy-900:#0d1b3e;
+    --navy-800:#132a5e;
+    --navy-700:#1c3a7a;
+    --gold-500:#c9a227;
+    --gold-400:#e0b93a;
+    --gold-100:#f4e6b8;
+    --paper:#f2efe6;
+    --ok:#3f9f6f;
+    --bad:#c94f4f;
+    --warn:#d98a2b;
+    --font-display:'Georgia','Times New Roman',serif;
+    --font-body:'Segoe UI',system-ui,-apple-system,sans-serif;
+    --font-mono:'Courier New',ui-monospace,monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html{-webkit-text-size-adjust:100%;}
+  html,body{margin:0;padding:0;min-height:100%;overflow-x:hidden;}
+  body{
+    background:
+      repeating-linear-gradient(135deg, rgba(201,162,39,.025) 0 2px, transparent 2px 42px),
+      radial-gradient(circle at 20% -10%, var(--navy-800), var(--navy-950) 60%);
+    color:var(--paper);
+    font-family:var(--font-body);
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    width:100%;
+  }
+  .mono{font-family:var(--font-mono);}
+  .topbar{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;
+    gap:8px;
+    padding:12px 16px;
+    background:linear-gradient(180deg,var(--navy-900),transparent);
+    border-bottom:1px solid rgba(201,162,39,.25);
+    position:relative;
+  }
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);min-width:0;}
+  .brand .badge{
+    flex-shrink:0;
+    width:34px;height:34px;border-radius:50%;
+    background:conic-gradient(var(--gold-500),var(--gold-100),var(--gold-500));
+    display:flex;align-items:center;justify-content:center;
+    color:var(--navy-950);font-weight:bold;font-size:14px;
+  }
+  .brand h1{font-size:clamp(.85rem,3.2vw,1.05rem);margin:0;letter-spacing:.5px;white-space:nowrap;}
+  .brand small{display:block;color:var(--gold-100);opacity:.75;font-size:.68rem;white-space:nowrap;}
+  .xpbar-wrap{display:flex;align-items:center;gap:8px;font-size:.75rem;flex-wrap:wrap;}
+  .rank{color:var(--gold-400);font-weight:600;white-space:nowrap;}
+  .xpbar{width:90px;height:8px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;flex-shrink:0;}
+  .xpbar-fill{height:100%;background:linear-gradient(90deg,var(--gold-500),var(--gold-100));transition:width .4s;}
+
+  main{flex:1;max-width:960px;margin:0 auto;width:100%;padding:16px;position:relative;}
+
+  /* --- Sello institucional (elemento firma) --- */
+  .stamp{
+    position:absolute; top:14px; right:20px;
+    width:96px; height:96px; border-radius:50%;
+    border:2px dashed rgba(201,162,39,.55);
+    display:flex; align-items:center; justify-content:center;
+    text-align:center; transform:rotate(-14deg);
+    color:var(--gold-400); font-family:var(--font-display);
+    font-size:.6rem; letter-spacing:1px; line-height:1.3;
+    opacity:0; animation: stampIn .6s ease-out .2s forwards;
+    pointer-events:none; user-select:none;
+  }
+  .stamp span{display:block;}
+  .stamp .big{font-size:.95rem; font-weight:bold; margin:2px 0;}
+  @keyframes stampIn{
+    0%{opacity:0; transform:rotate(-14deg) scale(1.4);}
+    100%{opacity:.55; transform:rotate(-14deg) scale(1);}
+  }
+
+  /* --- Rank-up banner --- */
+  #rankUpBanner{
+    position:fixed; top:-120px; left:50%; transform:translateX(-50%);
+    background:linear-gradient(160deg,var(--gold-400),var(--gold-500));
+    color:var(--navy-950); padding:14px 22px; border-radius:12px;
+    font-family:var(--font-display); font-weight:bold; font-size:1rem;
+    box-shadow:0 10px 30px rgba(0,0,0,.5); z-index:999;
+    border:2px solid var(--navy-950);
+    transition:top .5s cubic-bezier(.2,.9,.3,1.3);
+    text-align:center; max-width:90vw;
+  }
+  #rankUpBanner.show{ top:14px; }
+  #rankUpBanner small{display:block;font-family:var(--font-body);font-weight:normal;font-size:.68rem;opacity:.8;}
+
+  /* --- Gate --- */
+  #gate{
+    flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:16px;text-align:center;padding:20px;
+  }
+  #gate h2{font-family:var(--font-display);font-size:clamp(1.2rem,5vw,1.6rem);color:var(--gold-100);margin:0;}
+  #gate p{opacity:.8;max-width:420px;margin:0;font-size:.92rem;}
+  #gate input{
+    padding:14px 16px;border-radius:8px;border:1px solid var(--gold-500);
+    background:var(--navy-900);color:var(--paper);font-size:16px;
+    width:100%;max-width:260px;text-align:center;
+  }
+  #gate .err{color:var(--bad);font-size:.85rem;min-height:1.2em;}
+
+  button, .btn{
+    font-family:var(--font-body);
+    background:linear-gradient(180deg,var(--gold-400),var(--gold-500));
+    color:var(--navy-950);border:none;border-radius:8px;
+    padding:12px 18px;font-weight:700;cursor:pointer;font-size:.92rem;
+    box-shadow:0 3px 0 #8a6f16;
+    min-height:44px;
+    touch-action:manipulation;
+  }
+  button:active{transform:translateY(2px);box-shadow:0 1px 0 #8a6f16;}
+  button.ghost{
+    background:transparent;color:var(--gold-100);border:1px solid rgba(201,162,39,.5);
+    box-shadow:none;
+  }
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* --- Menu --- */
+  #menu{display:none;}
+  .menu-title{font-family:var(--font-display);font-size:clamp(1.2rem,4.5vw,1.5rem);color:var(--gold-100);margin-bottom:4px;}
+  .menu-sub{opacity:.7;margin-bottom:20px;font-size:.85rem;}
+  .mode-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
+  .mode-card{
+    background:linear-gradient(160deg,var(--navy-800),var(--navy-900));
+    border:1px solid rgba(201,162,39,.3);border-radius:14px;padding:16px;
+    cursor:pointer;transition:transform .15s, border-color .15s;
+    display:flex;flex-direction:column;gap:8px;
+    touch-action:manipulation;
+  }
+  .mode-card:hover{transform:translateY(-3px);border-color:var(--gold-400);}
+  .mode-card .icon{font-size:1.7rem;}
+  .mode-card h3{margin:0;font-size:1rem;color:var(--gold-100);}
+  .mode-card p{margin:0;font-size:.8rem;opacity:.75;line-height:1.35;}
+  .mode-card .tag{align-self:flex-start;font-size:.63rem;text-transform:uppercase;letter-spacing:.5px;
+    background:rgba(201,162,39,.18);color:var(--gold-400);padding:3px 8px;border-radius:20px;}
+
+  /* --- Game screens --- */
+  .screen{display:none;}
+  .screen.active{display:block;}
+  .screen-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:8px;flex-wrap:wrap;}
+  .screen-head h2{font-family:var(--font-display);font-size:clamp(1.05rem,4vw,1.3rem);color:var(--gold-100);margin:0;}
+  .hud{display:flex;gap:8px;font-size:.78rem;opacity:.85;margin-bottom:10px;flex-wrap:wrap;}
+  .hud span{background:rgba(255,255,255,.06);padding:4px 10px;border-radius:20px;white-space:nowrap;}
+
+  .card-panel{
+    background:rgba(255,255,255,.04);border:1px solid rgba(201,162,39,.25);
+    border-radius:14px;padding:18px;min-height:200px;
+  }
+
+  .round-complete{text-align:center;padding:16px 0;}
+  .round-complete h3{font-family:var(--font-display);color:var(--gold-100);font-size:1.2rem;margin-bottom:6px;}
+  .round-complete .score{font-size:1.9rem;font-weight:bold;color:var(--gold-400);margin:10px 0;}
+  .round-complete .actions{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+
+  /* Memorice */
+  .memo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .memo-col h4{font-size:.78rem;text-transform:uppercase;letter-spacing:.5px;color:var(--gold-400);margin-bottom:8px;}
+  .memo-item{
+    padding:10px 10px;margin-bottom:8px;border-radius:8px;font-size:.8rem;cursor:pointer;
+    background:var(--navy-800);border:1px solid rgba(201,162,39,.25);
+    touch-action:manipulation; line-height:1.3;
+  }
+  .memo-item.selected{border-color:var(--gold-400);background:rgba(201,162,39,.2);}
+  .memo-item.matched{opacity:.3;pointer-events:none;}
+  .memo-item.wrongflash{border-color:var(--bad);}
+
+  /* VF */
+  .vf-statement{font-size:1rem;line-height:1.5;margin-bottom:18px;min-height:70px;}
+  .vf-buttons{display:flex;gap:12px;}
+  .vf-buttons button{flex:1;font-size:1rem;}
+  .combo{color:var(--gold-400);font-weight:700;}
+
+  /* Numeritos */
+  .num-statement{font-size:.98rem;margin-bottom:16px;}
+  .num-input-row{display:flex;gap:10px;}
+  .num-input-row input{
+    flex:1;min-width:0;padding:12px;border-radius:8px;border:1px solid var(--gold-500);
+    background:var(--navy-900);color:var(--paper);font-size:16px;
+  }
+
+  /* Exam */
+  .exam-opt{
+    display:block;width:100%;text-align:left;margin-bottom:10px;padding:12px 14px;
+    background:var(--navy-800);border:1px solid rgba(201,162,39,.3);border-radius:8px;
+    color:var(--paper);cursor:pointer;font-size:.88rem;
+    touch-action:manipulation; line-height:1.35;
+  }
+  .exam-opt.correct{background:rgba(63,159,111,.35);border-color:var(--ok);}
+  .exam-opt.incorrect{background:rgba(201,79,79,.35);border-color:var(--bad);}
+  .exam-explain{margin-top:14px;font-size:.83rem;background:rgba(255,255,255,.05);padding:10px 12px;border-radius:8px;opacity:.9;}
+
+  /* Expediente Disciplinario */
+  .caso-scenario{
+    font-size:.98rem;line-height:1.5;margin-bottom:18px;padding:12px 14px;
+    background:rgba(255,255,255,.04);border-left:3px solid var(--gold-500);border-radius:6px;
+  }
+  .caso-group{margin-bottom:16px;}
+  .caso-group h4{font-size:.72rem;text-transform:uppercase;letter-spacing:.6px;color:var(--gold-400);margin:0 0 8px;}
+  .caso-chip-row{display:flex;flex-wrap:wrap;gap:8px;}
+  .caso-chip{
+    padding:8px 14px;border-radius:20px;border:1px solid rgba(201,162,39,.35);
+    background:var(--navy-800);color:var(--paper);cursor:pointer;font-size:.78rem;
+    touch-action:manipulation; line-height:1.3;
+  }
+  .caso-chip.selected{border-color:var(--gold-400);background:rgba(201,162,39,.25);}
+  .caso-chip.correct{background:rgba(63,159,111,.35);border-color:var(--ok);}
+  .caso-chip.incorrect{background:rgba(201,79,79,.35);border-color:var(--bad);}
+  .caso-chip.disabled{pointer-events:none;opacity:.85;}
+  .caso-explain{margin-top:12px;font-size:.83rem;background:rgba(255,255,255,.05);padding:10px 12px;border-radius:8px;opacity:.9;}
+
+  .feedback{margin-top:14px;font-weight:700;min-height:1.4em;font-size:.92rem;}
+  .feedback.ok{color:var(--ok);}
+  .feedback.bad{color:var(--bad);}
+
+  .footer-nav{display:flex;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;}
+
+  /* ===== Responsive breakpoints ===== */
+  @media (max-width:640px){
+    .memo-grid{grid-template-columns:1fr;}
+    .stamp{display:none;}
+  }
+  @media (max-width:480px){
+    main{padding:10px;}
+    .card-panel{padding:14px;min-height:160px;}
+    .vf-buttons{flex-direction:column;}
+    .num-input-row{flex-direction:column;}
+    .num-input-row input{width:100%;}
+    .mode-grid{grid-template-columns:1fr;}
+    .topbar{padding:10px 12px;}
+    .brand .badge{width:28px;height:28px;font-size:12px;}
+    .screen-head{gap:6px;}
+    #gate input{font-size:16px;}
+  }
+  @media (max-width:360px){
+    .xpbar{width:64px;}
+    .brand small{display:none;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="badge">N8</div>
+    <div>
+      <h1>NEXPOL · Tema 8</h1>
+      <small>Dirección General de la Policía</small>
+    </div>
+  </div>
+  <div class="xpbar-wrap" id="hudTop" style="display:none;">
+    <span class="rank" id="rankLabel">Aspirante</span>
+    <div class="xpbar"><div class="xpbar-fill" id="xpFill" style="width:0%;"></div></div>
+    <span id="xpLabel" class="mono">0 XP</span>
+  </div>
+</div>
+
+<div id="rankUpBanner">
+  🎖️ ¡ASCENSO!
+  <small id="rankUpText"></small>
+</div>
+
+<main>
+
+  <!-- GATE -->
+  <section id="gate">
+    <h2>Acceso restringido — #CUSTODIERS</h2>
+    <p>Introduce la contraseña facilitada por tu instructor para acceder al material de estudio del Tema 8.</p>
+    <input type="password" id="pwInput" placeholder="Contraseña" autocomplete="off">
+    <button onclick="checkPassword()">Entrar</button>
+    <div class="err" id="pwErr"></div>
+  </section>
+
+  <!-- MENU -->
+  <section id="menu">
+    <div class="stamp"><span>ACADEMIA</span><span class="big">CNP</span><span>ESCALA BÁSICA</span></div>
+    <div class="menu-title">Elige tu modo de entrenamiento</div>
+    <div class="menu-sub">Tema 8: DGP · Estructura orgánica · Policía Nacional · Régimen disciplinario</div>
+    <div class="mode-grid">
+      <div class="mode-card" onclick="openMode('memo')">
+        <div class="icon">🧩</div>
+        <h3>Memorice Unidad↔Función</h3>
+        <p>Empareja cada unidad (UDYCO, UDEV, UCIC...) con su función real. 20 unidades en rotación.</p>
+        <span class="tag">Siglas</span>
+      </div>
+      <div class="mode-card" onclick="openMode('vf')">
+        <div class="icon">⚡</div>
+        <h3>Verdadero / Falso cronometrado</h3>
+        <p>Afirmaciones sobre escalas, categorías y régimen disciplinario. Combo por rachas de aciertos.</p>
+        <span class="tag">Velocidad</span>
+      </div>
+      <div class="mode-card" onclick="openMode('num')">
+        <div class="icon">🔢</div>
+        <h3>Numeritos DGP</h3>
+        <p>Los datos que siempre lían: plazos, edades, cifras de unidades y sedes.</p>
+        <span class="tag">Cifras clave</span>
+      </div>
+      <div class="mode-card" onclick="openMode('caso')">
+        <div class="icon">🗂️</div>
+        <h3>Expediente Disciplinario</h3>
+        <p>Ante cada caso real: clasifica la gravedad, la sanción exacta y el órgano competente.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="mode-card" onclick="openMode('sit')">
+        <div class="icon">📋</div>
+        <h3>Situaciones Administrativas</h3>
+        <p>Casos reales de excedencias, servicios especiales y segunda actividad: identifica la situación y si computa antigüedad.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="mode-card" onclick="openMode('exam')">
+        <div class="icon">📝</div>
+        <h3>Examen Adaptativo</h3>
+        <p>Preguntas tipo test (3 opciones) con repaso inteligente (Leitner): prioriza lo que más falles.</p>
+        <span class="tag">Simulacro</span>
+      </div>
+    </div>
+    <div style="margin-top:24px;">
+      <button class="ghost" onclick="resetProgress()">Reiniciar progreso</button>
+    </div>
+  </section>
+
+  <!-- MEMORICE -->
+  <section class="screen" id="screen-memo">
+    <div class="screen-head">
+      <h2>🧩 Memorice Unidad↔Función</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="memoScore" class="mono">Parejas: 0/0</span>
+      <span id="memoErrors" class="mono">Errores: 0</span>
+    </div>
+    <div class="card-panel memo-grid" id="memoPanel">
+      <div class="memo-col">
+        <h4>Unidad</h4>
+        <div id="memoLeft"></div>
+      </div>
+      <div class="memo-col">
+        <h4>Función</h4>
+        <div id="memoRight"></div>
+      </div>
+    </div>
+    <div class="card-panel round-complete" id="memoComplete" style="display:none;"></div>
+  </section>
+
+  <!-- VF -->
+  <section class="screen" id="screen-vf">
+    <div class="screen-head">
+      <h2>⚡ Verdadero / Falso</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="vfProgress" class="mono">Pregunta 0/0</span>
+      <span>Combo: <span class="combo mono" id="vfCombo">x1</span></span>
+      <span id="vfTimer" class="mono">⏱ 15s</span>
+    </div>
+    <div class="card-panel" id="vfPanel">
+      <div class="vf-statement" id="vfStatement">Cargando...</div>
+      <div class="vf-buttons">
+        <button id="vfBtnTrue" onclick="answerVF(true)">✅ VERDADERO</button>
+        <button id="vfBtnFalse" onclick="answerVF(false)">❌ FALSO</button>
+      </div>
+      <div class="feedback" id="vfFeedback"></div>
+    </div>
+    <div class="card-panel round-complete" id="vfComplete" style="display:none;"></div>
+  </section>
+
+  <!-- NUMERITOS -->
+  <section class="screen" id="screen-num">
+    <div class="screen-head">
+      <h2>🔢 Numeritos DGP</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="numProgress" class="mono">Pregunta 0/0</span>
+      <span id="numScoreLabel" class="mono">Aciertos: 0</span>
+    </div>
+    <div class="card-panel" id="numPanel">
+      <div class="num-statement" id="numStatement">Cargando...</div>
+      <div class="num-input-row">
+        <input type="text" id="numInput" placeholder="Tu respuesta..." inputmode="text">
+        <button onclick="answerNum()">Comprobar</button>
+      </div>
+      <div class="feedback" id="numFeedback"></div>
+    </div>
+    <div class="card-panel round-complete" id="numComplete" style="display:none;"></div>
+  </section>
+
+  <!-- EXPEDIENTE DISCIPLINARIO -->
+  <section class="screen" id="screen-caso">
+    <div class="screen-head">
+      <h2>🗂️ Expediente Disciplinario</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="casoProgress" class="mono">Caso 0/0</span>
+      <span id="casoScoreLabel" class="mono">Expedientes perfectos: 0</span>
+    </div>
+    <div class="card-panel" id="casoPanel">
+      <div class="caso-scenario" id="casoScenario">Cargando...</div>
+
+      <div class="caso-group">
+        <h4>1. Gravedad de la falta</h4>
+        <div class="caso-chip-row" id="casoGravedadRow"></div>
+      </div>
+      <div class="caso-group">
+        <h4>2. Sanción que corresponde</h4>
+        <div class="caso-chip-row" id="casoSancionRow"></div>
+      </div>
+      <div class="caso-group">
+        <h4>3. Órgano competente</h4>
+        <div class="caso-chip-row" id="casoOrganoRow"></div>
+      </div>
+
+      <div class="caso-explain" id="casoExplain" style="display:none;"></div>
+      <div class="footer-nav">
+        <button id="casoCheckBtn" onclick="checkCaso()" disabled>Comprobar expediente</button>
+        <button id="casoNextBtn" style="display:none;" onclick="nextCaso()">Siguiente caso →</button>
+      </div>
+    </div>
+    <div class="card-panel round-complete" id="casoComplete" style="display:none;"></div>
+  </section>
+
+  <!-- SITUACIONES ADMINISTRATIVAS -->
+  <section class="screen" id="screen-sit">
+    <div class="screen-head">
+      <h2>📋 Situaciones Administrativas</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="sitProgress" class="mono">Caso 0/0</span>
+      <span id="sitScoreLabel" class="mono">Perfectos: 0</span>
+    </div>
+    <div class="card-panel" id="sitPanel">
+      <div class="caso-scenario" id="sitScenario">Cargando...</div>
+
+      <div class="caso-group">
+        <h4>1. ¿Qué situación administrativa es?</h4>
+        <div class="caso-chip-row" id="sitSituacionRow"></div>
+      </div>
+      <div class="caso-group">
+        <h4>2. ¿Computa a efectos de trienios y antigüedad?</h4>
+        <div class="caso-chip-row" id="sitComputaRow"></div>
+      </div>
+
+      <div class="caso-explain" id="sitExplain" style="display:none;"></div>
+      <div class="footer-nav">
+        <button id="sitCheckBtn" onclick="checkSit()" disabled>Comprobar</button>
+        <button id="sitNextBtn" style="display:none;" onclick="nextSit()">Siguiente caso →</button>
+      </div>
+    </div>
+    <div class="card-panel round-complete" id="sitComplete" style="display:none;"></div>
+  </section>
+
+  <!-- EXAM -->
+  <section class="screen" id="screen-exam">
+    <div class="screen-head">
+      <h2>📝 Examen Adaptativo</h2>
+      <button class="ghost" onclick="backToMenu()">← Menú</button>
+    </div>
+    <div class="hud">
+      <span id="examProgress" class="mono">Pregunta 0/0</span>
+      <span id="examScoreLabel" class="mono">Aciertos: 0</span>
+    </div>
+    <div class="card-panel" id="examPanel">
+      <div class="num-statement" id="examStatement">Cargando...</div>
+      <div id="examOptions"></div>
+      <div class="exam-explain" id="examExplain" style="display:none;"></div>
+      <div class="footer-nav">
+        <span></span>
+        <button id="examNextBtn" style="display:none;" onclick="nextExam()">Siguiente →</button>
+      </div>
+    </div>
+    <div class="card-panel round-complete" id="examComplete" style="display:none;"></div>
+  </section>
+
+</main>
+
+<script>
+/* =========================================================
+   NEXPOL · TEMA 8 - LA DGP  ·  v0.3
+   Cambios: fuera Organigrama Vivo (duplicaba otro juego NEXPOL),
+   dentro Expediente Disciplinario. Examen a 3 opciones.
+   Auditoría responsive completa (móvil/tablet/iPhone).
+   ========================================================= */
+
+const PASSWORD = "nexpol2026";
+
+/* ---------- Estado / persistencia local ---------- */
+const STORAGE_KEY = "nexpol_t8_progress_v3";
+function loadState(){
+  try{
+    const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if(!s) return {xp:0, leitron:{}, exposure:{}};
+    if(!s.exposure) s.exposure = {};
+    if(!s.leitron) s.leitron = {};
+    return s;
+  }catch(e){ return {xp:0, leitron:{}, exposure:{}}; }
+}
+function saveState(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+let state = loadState();
+
+const RANKS = [
+  {min:0,name:"Aspirante"},
+  {min:150,name:"Alumno CNP"},
+  {min:400,name:"Policía en Prácticas"},
+  {min:800,name:"Oficial de Policía"},
+  {min:1400,name:"Inspector"},
+  {min:2200,name:"Comisario"},
+];
+function currentRank(xp){
+  let r = RANKS[0];
+  for(const rk of RANKS){ if(xp>=rk.min) r=rk; }
+  return r;
+}
+function nextRank(xp){
+  for(const rk of RANKS){ if(xp<rk.min) return rk; }
+  return null;
+}
+function refreshHud(){
+  const rk = currentRank(state.xp);
+  const nx = nextRank(state.xp);
+  document.getElementById('rankLabel').textContent = rk.name;
+  document.getElementById('xpLabel').textContent = state.xp + " XP";
+  let pct = 100;
+  if(nx){
+    const span = nx.min - rk.min;
+    pct = Math.min(100, Math.round(((state.xp-rk.min)/span)*100));
+  }
+  document.getElementById('xpFill').style.width = pct+"%";
+}
+function showRankUpBanner(rankName){
+  const b = document.getElementById('rankUpBanner');
+  document.getElementById('rankUpText').textContent = 'Nuevo rango: '+rankName;
+  b.classList.add('show');
+  setTimeout(()=>b.classList.remove('show'), 2600);
+}
+function addXP(amount){
+  const before = currentRank(state.xp);
+  state.xp = Math.max(0, state.xp + amount);
+  const after = currentRank(state.xp);
+  saveState();
+  refreshHud();
+  if(after.name !== before.name && amount > 0){
+    showRankUpBanner(after.name);
+  }
+}
+function resetProgress(){
+  if(confirm("¿Reiniciar todo tu progreso (XP, rango y repaso)?")){
+    state = {xp:0, leitron:{}, exposure:{}};
+    saveState();
+    refreshHud();
+    alert("Progreso reiniciado.");
+  }
+}
+
+/* ---------- Gate ---------- */
+function checkPassword(){
+  const val = document.getElementById('pwInput').value;
+  if(val === PASSWORD){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('menu').style.display='block';
+    document.getElementById('hudTop').style.display='flex';
+    refreshHud();
+  }else{
+    document.getElementById('pwErr').textContent = "Contraseña incorrecta.";
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') checkPassword();
+});
+
+/* ---------- Navegación entre pantallas ---------- */
+function openMode(mode){
+  document.getElementById('menu').style.display='none';
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+mode).classList.add('active');
+  if(mode==='memo') initMemo();
+  if(mode==='vf') initVF();
+  if(mode==='num') initNum();
+  if(mode==='caso') initCaso();
+  if(mode==='sit') initSit();
+  if(mode==='exam') initExam();
+}
+function backToMenu(){
+  clearInterval(vfTimerHandle);
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('menu').style.display='block';
+}
+
+/* =========================================================
+   ROTACIÓN ANTI-REPETICIÓN
+   Cada ítem tiene un id estable. Guardamos cuántas veces se ha
+   visto (state.exposure[trackKey][id]) y cada ronda prioriza los
+   menos vistos, con desempate aleatorio.
+   ========================================================= */
+function pickRotatingSet(bank, trackKey, count){
+  if(!state.exposure[trackKey]) state.exposure[trackKey] = {};
+  const exp = state.exposure[trackKey];
+  const withCounts = bank.map(item=>({item, c: exp[item.id]||0}));
+  const shuffled = shuffle(withCounts);
+  shuffled.sort((a,b)=>a.c-b.c);
+  const chosen = shuffled.slice(0, Math.min(count, bank.length)).map(x=>x.item);
+  return shuffle(chosen);
+}
+function markSeen(trackKey, id){
+  if(!state.exposure[trackKey]) state.exposure[trackKey] = {};
+  state.exposure[trackKey][id] = (state.exposure[trackKey][id]||0)+1;
+  saveState();
+}
+function normalizeAnswer(s){
+  return s.trim().toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'') // quita acentos
+    .replace(/\s+/g,' ');
+}
+
+/* =========================================================
+   DATOS
+   ========================================================= */
+
+/* --- Memorice: unidad -> función --- */
+const MEMO_PAIRS = [
+  {id:'m1', u:'UDYCO', f:'Investigación y persecución del tráfico de drogas y el crimen organizado'},
+  {id:'m2', u:'UDEV', f:'Delitos contra personas y patrimonio histórico, dopaje y corrupción deportiva'},
+  {id:'m3', u:'UCIC', f:'Inteligencia criminal y análisis de la criminalidad organizada'},
+  {id:'m4', u:'UDEF', f:'Delincuencia económica y fiscal'},
+  {id:'m5', u:'UCC', f:'Ciberdelincuencia: pornografía infantil, fraudes y seguridad informática'},
+  {id:'m6', u:'UFAM', f:'Violencia de género, doméstica y sexual; referente en materia de menores'},
+  {id:'m7', u:'UCRIF', f:'Redes de inmigración ilegal y falsedades documentales'},
+  {id:'m8', u:'UCF', f:'Gestión de fronteras: Sistema de Entradas y Salidas (SES) y SEIAV'},
+  {id:'m9', u:'GEO', f:'Intervención en situaciones de alto riesgo, especialmente terrorismo (sede en Guadalajara)'},
+  {id:'m10', u:'BRIC', f:'Refuerzo móvil de control de fronteras'},
+  {id:'m11', u:'UAI', f:'Investiga conductas de los funcionarios contrarias a la ética profesional'},
+  {id:'m12', u:'BOA', f:'Asume las funciones policiales que le atribuya la normativa vigente'},
+  {id:'m13', u:'UIP', f:'Unidades móviles de orden público: altas personalidades y grandes concentraciones'},
+  {id:'m14', u:'UPEC', f:'Asistencia a la Dirección Adjunta Operativa: Plan Estratégico e inteligencia criminal'},
+  {id:'m15', u:'Interpol (OCN)', f:'Único órgano de interlocución con la Secretaría General de Interpol'},
+  {id:'m16', u:'Europol (UNE)', f:'Enlace entre autoridades nacionales y la Agencia Europol'},
+  {id:'m17', u:'Oficina Sirene', f:'Cooperación en el Sistema de Información Schengen y Orden Europea de Detención'},
+  {id:'m18', u:'CG de Información', f:'Captación y explotación de información de interés para el orden público, especialmente antiterrorista'},
+  {id:'m19', u:'Brigada Central de Escoltas', f:'Protección integral de altas personalidades del Estado'},
+  {id:'m20', u:'CENIF', f:'Inteligencia criminal en materia de extranjería y fronteras'},
+];
+const MEMO_ROUND_SIZE = 8;
+
+/* --- Verdadero/Falso --- */
+const VF_BANK = [
+  {id:'v1', s:'El titular de la Dirección General de la Policía tiene rango de subsecretario.', a:true},
+  {id:'v2', s:'En caso de vacante del Director General, la suplencia corresponde a la Subdirección General de Logística e Innovación.', a:false, expl:'Corresponde a la Dirección Adjunta Operativa.'},
+  {id:'v3', s:'Existen actualmente 6 Comisarías especiales.', a:true},
+  {id:'v4', s:'La Escala Superior del CNP se clasifica en el subgrupo A1.', a:true},
+  {id:'v5', s:'La Escala de Subinspección se clasifica en el subgrupo A1.', a:false, expl:'Se clasifica en el subgrupo A2.'},
+  {id:'v6', s:'Las faltas muy graves prescriben a los 3 años.', a:true},
+  {id:'v7', s:'Las faltas leves prescriben al mes.', a:true},
+  {id:'v8', s:'La edad de pase a segunda actividad por petición propia en la Escala Básica es de 58 años.', a:true},
+  {id:'v9', s:'La sede del Grupo Especial de Operaciones (GEO) radica en Ávila.', a:false, expl:'Radica en Guadalajara.'},
+  {id:'v10', s:'La Escuela Nacional de Policía tiene su sede en Ávila.', a:true},
+  {id:'v11', s:'El ingreso en la Policía Nacional se rige por los principios de igualdad, mérito y capacidad.', a:true},
+  {id:'v12', s:'Para acceder a la categoría de Policía se exige título universitario de grado.', a:false, expl:'Se exige el título de bachiller o equivalente; el grado universitario es para Inspector.'},
+  {id:'v13', s:'La Escala Ejecutiva tiene tres categorías.', a:false, expl:'Tiene dos: Inspector Jefe e Inspector.'},
+  {id:'v14', s:'La Escala Básica tiene dos categorías: Oficial de Policía y Policía.', a:true},
+  {id:'v15', s:'El Consejo Asesor de la DGP está compuesto por 16 vocales.', a:true},
+  {id:'v16', s:'Las sanciones por falta muy grave pueden llegar hasta 6 años de suspensión de funciones.', a:true},
+  {id:'v17', s:'Los Policías Nacionales tienen reconocido el derecho de huelga.', a:false, expl:'No podrán ejercer en ningún caso el derecho de huelga ni acciones sustitutivas.'},
+  {id:'v18', s:'La jubilación forzosa se declara de oficio al cumplir 65 años.', a:true},
+  {id:'v19', s:'El plazo máximo para resolver y notificar un expediente disciplinario es de un año.', a:false, expl:'El plazo máximo es de seis meses desde la incoación.'},
+  {id:'v20', s:'La excedencia por cuidado de hijos puede durar hasta tres años.', a:true},
+  {id:'v21', s:'La Comisaría General de Policía Científica tiene nivel orgánico de Subdirección General.', a:true},
+  {id:'v22', s:'La UDYCO depende de la Comisaría General de Seguridad Ciudadana.', a:false, expl:'Depende de la Comisaría General de Policía Judicial.'},
+  {id:'v23', s:'El Grupo Especial de Operaciones (GEO) depende de la Comisaría General de Seguridad Ciudadana.', a:false, expl:'Depende directamente de la Dirección Adjunta Operativa.'},
+  {id:'v24', s:'La Orden INT/859/2023 es la norma fundamental de organización de la estructura del CNP vigente.', a:true},
+  {id:'v25', s:'Actualmente existen 20 Jefaturas Superiores de Policía (18 más Ceuta y Melilla).', a:true},
+  {id:'v26', s:'Existen 12 Unidades de Intervención Policial (UIP) en la actualidad.', a:true},
+  {id:'v27', s:'Las faltas graves prescriben a los dos años.', a:true},
+  {id:'v28', s:'Un Policía Nacional en situación de excedencia voluntaria por interés particular puede participar en procesos de promoción interna.', a:false, expl:'No podrá participar mientras permanezca en esa situación.'},
+  {id:'v29', s:'El número máximo de convocatorias para promoción por antigüedad selectiva es de tres.', a:true},
+  {id:'v30', s:'Actualmente existen 126 Comisarías Locales.', a:true},
+];
+const VF_ROUND_SIZE = 10;
+
+/* --- Numeritos --- */
+const NUM_BANK = [
+  {id:'n1', q:'¿Cuántas Comisarías especiales existen?', a:'6'},
+  {id:'n2', q:'¿Cuántas Jefaturas Superiores de Policía existen en total (incluyendo Ceuta y Melilla)?', a:'20'},
+  {id:'n3', q:'¿Cuántas Comisarías Locales existen actualmente?', a:'126'},
+  {id:'n4', q:'¿Cuántas UIP (Unidades de Intervención Policial) existen actualmente?', a:'12'},
+  {id:'n5', q:'¿A partir de qué edad puede pasar a segunda actividad por petición propia un funcionario de la Escala Superior?', a:'64'},
+  {id:'n6', q:'¿A partir de qué edad puede pasar a segunda actividad por petición propia un funcionario de la Escala Básica?', a:'58'},
+  {id:'n7', q:'¿Cuántos años de servicios efectivos permiten pasar a segunda actividad por petición propia (con independencia de la edad)?', a:'25'},
+  {id:'n8', q:'¿Cuántos vocales componen el Consejo Asesor de la DGP?', a:'16'},
+  {id:'n9', q:'¿En cuántos años prescribe una falta muy grave?', a:'3'},
+  {id:'n10', q:'¿En cuántos meses prescribe, como máximo, una falta grave?', a:'2'},
+  {id:'n11', q:'¿En qué localidad radica la sede del Grupo Especial de Operaciones (GEO)?', a:'Guadalajara'},
+  {id:'n12', q:'¿En qué localidad radica la sede de la Escuela Nacional de Policía?', a:'Ávila'},
+  {id:'n13', q:'¿Cuál es la duración máxima, en años, de la sanción de suspensión de funciones por falta muy grave?', a:'6'},
+  {id:'n14', q:'¿Cuál es la duración máxima, en meses, de la sanción de suspensión de funciones por falta grave?', a:'3'},
+  {id:'n15', q:'¿Cuál es la duración máxima, en días, de la sanción de suspensión de funciones por falta leve?', a:'4'},
+  {id:'n16', q:'¿A qué edad se declara de oficio la jubilación forzosa?', a:'65'},
+  {id:'n17', q:'¿Cuántos miembros componen la Junta de Gobierno de la DGP?', a:'16'},
+  {id:'n18', q:'¿Cuál es el número máximo de convocatorias a las que se puede optar por la modalidad de antigüedad selectiva?', a:'3'},
+  {id:'n19', q:'¿Cuántos años mínimos de servicio efectivo en la categoría se exigen para concurrir a ascenso por concurso-oposición?', a:'2'},
+  {id:'n20', q:'¿Cuál es el plazo máximo, en meses, para resolver y notificar un procedimiento disciplinario desde su incoación?', a:'6'},
+];
+const NUM_ROUND_SIZE = 10;
+
+/* --- Expediente Disciplinario --- */
+const GRAVEDAD_OPTS = ['Leve','Grave','Muy grave'];
+const SANCION_OPTS = [
+  'Apercibimiento',
+  'Suspensión de funciones de 1 a 4 días',
+  'Suspensión de funciones de 5 días a 3 meses',
+  'Suspensión de funciones hasta 3 años (falta muy grave)',
+  'Suspensión de funciones de 3 meses y 1 día a 6 años',
+  'Traslado forzoso',
+  'Separación del servicio',
+];
+const ORGANO_OPTS = [
+  'Delegados del Gobierno / Jefes Superiores / jefes de órganos centrales (según corresponda)',
+  'Director General de la Policía',
+  'Secretario de Estado de Seguridad',
+  'Ministro del Interior',
+];
+const CASES = [
+  {id:'c1', scenario:'Un policía llega tarde de forma repetida al servicio sin justificación en los últimos 30 días.',
+   gravedad:'Leve', sancion:'Apercibimiento', organo:ORGANO_OPTS[0],
+   expl:'El retraso o la negligencia y las faltas repetidas de puntualidad se clasifican como falta leve. El apercibimiento lo puede imponer, entre otros, el Delegado del Gobierno o el Jefe Superior de Policía según dónde preste servicio el funcionario.'},
+  {id:'c2', scenario:'Un policía extravía por simple negligencia su arma reglamentaria.',
+   gravedad:'Leve', sancion:'Suspensión de funciones de 1 a 4 días', organo:ORGANO_OPTS[0],
+   expl:'Dar lugar al extravío por simple negligencia del arma reglamentaria es falta leve, con sanción de suspensión de 1 a 4 días.'},
+  {id:'c3', scenario:'Un policía se ausenta reiteradamente del aseo personal y de las normas de uniformidad, sin que llegue a constituir falta grave.',
+   gravedad:'Leve', sancion:'Apercibimiento', organo:ORGANO_OPTS[0],
+   expl:'El descuido en el aseo personal y el incumplimiento de las normas de uniformidad, cuando no constituye falta grave, es leve.'},
+  {id:'c4', scenario:'Un policía desobedece una orden legítima de un superior jerárquico, sin que constituya infracción manifiesta del ordenamiento jurídico.',
+   gravedad:'Grave', sancion:'Suspensión de funciones de 5 días a 3 meses', organo:ORGANO_OPTS[1],
+   expl:'La desobediencia a órdenes legítimas es falta grave; por faltas graves es competente el Director General de la Policía.'},
+  {id:'c5', scenario:'Un policía exhibe el arma reglamentaria sin causa justificada.',
+   gravedad:'Grave', sancion:'Suspensión de funciones de 5 días a 3 meses', organo:ORGANO_OPTS[1],
+   expl:'Exhibir armas sin causa justificada es falta grave, sancionable por el Director General de la Policía.'},
+  {id:'c6', scenario:'Un policía no presta servicio alegando una supuesta enfermedad, sin acreditarla.',
+   gravedad:'Grave', sancion:'Suspensión de funciones de 5 días a 3 meses', organo:ORGANO_OPTS[1],
+   expl:'No prestar servicio alegando supuesta enfermedad es falta grave.'},
+  {id:'c7', scenario:'Un policía se niega injustificadamente a someterse a la prueba de alcoholemia legítimamente ordenada.',
+   gravedad:'Muy grave', sancion:'Suspensión de funciones hasta 3 años (falta muy grave)', organo:ORGANO_OPTS[1],
+   expl:'La negativa injustificada a las pruebas de detección es falta muy grave; el Director General puede imponer suspensión de funciones hasta 3 años por faltas muy graves.'},
+  {id:'c8', scenario:'Un policía viola el secreto profesional, perjudicando gravemente el desarrollo de la labor policial.',
+   gravedad:'Muy grave', sancion:'Suspensión de funciones hasta 3 años (falta muy grave)', organo:ORGANO_OPTS[1],
+   expl:'La violación del secreto profesional que perjudique la labor policial es falta muy grave, sancionable con suspensión hasta 3 años por el Director General.'},
+  {id:'c9', scenario:'Un policía se embriaga o consume drogas tóxicas durante el servicio.',
+   gravedad:'Muy grave', sancion:'Suspensión de funciones hasta 3 años (falta muy grave)', organo:ORGANO_OPTS[1],
+   expl:'Embriagarse o consumir drogas tóxicas durante el servicio, o prestarlo bajo sus efectos, es falta muy grave.'},
+  {id:'c10', scenario:'Un policía practica tratos degradantes a un ciudadano que se encuentra bajo custodia policial.',
+   gravedad:'Muy grave', sancion:'Suspensión de funciones de 3 meses y 1 día a 6 años', organo:ORGANO_OPTS[2],
+   expl:'La suspensión de funciones de 3 meses y 1 día a 6 años (así como el traslado forzoso) por faltas muy graves corresponde imponerla al Secretario de Estado de Seguridad.'},
+  {id:'c11', scenario:'Un policía participa en una huelga o en acciones sustitutivas de la misma.',
+   gravedad:'Muy grave', sancion:'Traslado forzoso', organo:ORGANO_OPTS[2],
+   expl:'La participación en huelgas es falta muy grave; el traslado forzoso, igual que la suspensión de 3 meses y 1 día a 6 años, corresponde al Secretario de Estado de Seguridad.'},
+  {id:'c12', scenario:'Un policía es condenado en sentencia firme por un delito doloso relacionado con el servicio que causa grave daño a la Administración.',
+   gravedad:'Muy grave', sancion:'Separación del servicio', organo:ORGANO_OPTS[3],
+   expl:'La separación del servicio por falta muy grave es la sanción más grave del régimen disciplinario; su imposición corresponde al Ministro del Interior.'},
+];
+const CASO_ROUND_SIZE = 6;
+
+/* --- Situaciones Administrativas --- */
+const SITUACION_OPTS = [
+  'Servicio activo',
+  'Servicios especiales',
+  'Servicio en otras administraciones públicas',
+  'Excedencia voluntaria por interés particular',
+  'Excedencia voluntaria por agrupación familiar',
+  'Excedencia por cuidado de familiares',
+  'Excedencia por razón de violencia de género',
+  'Excedencia voluntaria por prestación de servicio en el sector público',
+  'Suspensión de funciones (firme)',
+  'Suspensión de funciones (provisional, no declarada firme)',
+  'Segunda actividad',
+];
+const COMPUTA_OPTS = ['Sí, computa', 'No computa'];
+const SIT_CASES = [
+  {id:'s1', scenario:'Un policía presta servicio con normalidad en su puesto de trabajo habitual del Catálogo de Puestos.',
+   situacion:'Servicio activo', computa:'Sí, computa',
+   expl:'Es la situación normal: el funcionario goza de todos los derechos inherentes a su condición y computa a todos los efectos.'},
+  {id:'s2', scenario:'Un policía es designado miembro del Gobierno de una Comunidad Autónoma.',
+   situacion:'Servicios especiales', computa:'Sí, computa',
+   expl:'Ser designado alto cargo de una administración pública da lugar a servicios especiales; el tiempo computa a efectos de trienios, antigüedad y Seguridad Social, aunque se perciban las retribuciones del cargo desempeñado.'},
+  {id:'s3', scenario:'Un policía es elegido Diputado en el Congreso.',
+   situacion:'Servicios especiales', computa:'Sí, computa',
+   expl:'Acceder a la condición de Diputado o Senador es causa de servicios especiales, con cómputo de trienios y antigüedad.'},
+  {id:'s4', scenario:'Un policía obtiene destino en una Comunidad Autónoma en virtud de un proceso de transferencias.',
+   situacion:'Servicio en otras administraciones públicas', computa:'Sí, computa',
+   expl:'El tiempo de servicio en la administración de destino se computa como servicio activo en su escala y categoría de origen.'},
+  {id:'s5', scenario:'Un policía solicita excedencia para dedicarse a un negocio propio, sin que medie ninguna causa familiar, tras cinco años en servicio activo.',
+   situacion:'Excedencia voluntaria por interés particular', computa:'No computa',
+   expl:'En esta excedencia no se devengan retribuciones ni computa el tiempo a efectos de trienios, antigüedad ni Seguridad Social.'},
+  {id:'s6', scenario:'El cónyuge de un policía obtiene destino definitivo como funcionaria en otra ciudad y el policía solicita reunirse con ella.',
+   situacion:'Excedencia voluntaria por agrupación familiar', computa:'No computa',
+   expl:'La excedencia por agrupación familiar tampoco genera retribuciones ni computa a efectos de trienios o antigüedad.'},
+  {id:'s7', scenario:'Un policía solicita un permiso de hasta tres años para cuidar de su hijo recién nacido.',
+   situacion:'Excedencia por cuidado de familiares', computa:'Sí, computa',
+   expl:'La excedencia por cuidado de hijos o familiares sí es computable a efectos de trienios, antigüedad y Seguridad Social, y el puesto se reserva al menos dos años.'},
+  {id:'s8', scenario:'Una funcionaria víctima de violencia de género solicita dejar temporalmente su puesto para proteger su seguridad.',
+   situacion:'Excedencia por razón de violencia de género', computa:'Sí, computa',
+   expl:'Esta excedencia computa a efectos de trienios, antigüedad y Seguridad Social, con reserva del puesto durante los primeros seis meses (prorrogables).'},
+  {id:'s9', scenario:'Un policía obtiene una plaza como personal laboral fijo en un organismo del sector público, sin que le corresponda otra situación administrativa.',
+   situacion:'Excedencia voluntaria por prestación de servicio en el sector público', computa:'No computa',
+   expl:'No es computable a efectos de trienios, antigüedad ni Seguridad Social, salvo que se reconozca al reingresar en la Policía Nacional.'},
+  {id:'s10', scenario:'Un policía es condenado por sentencia firme a una pena de suspensión que supera los seis meses.',
+   situacion:'Suspensión de funciones (firme)', computa:'No computa',
+   expl:'La suspensión firme, cuando supera los seis meses, determina la pérdida del puesto de trabajo y no computa a efectos de trienios ni antigüedad.'},
+  {id:'s11', scenario:'Se incoa un expediente disciplinario por falta grave a un policía y se le aparta cautelarmente del servicio mientras se tramita, sin que la suspensión llegue a declararse firme.',
+   situacion:'Suspensión de funciones (provisional, no declarada firme)', computa:'Sí, computa',
+   expl:'Si la suspensión provisional no se declara firme, el tiempo se computa como de servicio activo a todos los efectos.'},
+  {id:'s12', scenario:'Un policía presenta una insuficiencia de aptitudes psicofísicas para el desempeño de la función policial, evaluada por un tribunal médico.',
+   situacion:'Segunda actividad', computa:'Sí, computa',
+   expl:'El tiempo en segunda actividad es computable a efectos de perfeccionamiento de trienios y de derechos pasivos.'},
+  {id:'s13', scenario:'Un policía de la Escala Superior cumple 64 años y solicita, por petición propia, pasar a esta situación.',
+   situacion:'Segunda actividad', computa:'Sí, computa',
+   expl:'La edad de pase a segunda actividad por petición propia en la Escala Superior es de 64 años; el tiempo en esta situación computa a efectos de trienios y derechos pasivos.'},
+  {id:'s14', scenario:'Un policía solicita excedencia por interés particular tras cinco años en servicio activo, sin tener expediente disciplinario pendiente.',
+   situacion:'Excedencia voluntaria por interés particular', computa:'No computa',
+   expl:'Se exige un mínimo de cinco años previos en servicio activo o servicios especiales; no genera retribuciones ni cómputo de trienios.'},
+];
+const SIT_ROUND_SIZE = 7;
+
+/* --- Examen adaptativo (3 opciones) --- */
+const EXAM_BANK = [
+  {id:'e1', q:'¿Qué órgano ejerce la suplencia del Director General de la Policía en caso de vacante, ausencia o enfermedad?',
+   opts:['El Gabinete Técnico','La Dirección Adjunta Operativa','El Secretario de Estado de Seguridad'], correct:1,
+   expl:'La suplencia corresponde a la persona titular de la Dirección Adjunta Operativa.'},
+  {id:'e2', q:'¿Cuál es la norma que actualmente desarrolla la estructura orgánica y funciones de los Servicios Centrales y Periféricos de la DGP?',
+   opts:['Orden INT/28/2013','Orden INT/859/2023','RD 734/2020'], correct:1,
+   expl:'La Orden INT/859/2023, de 21 de julio, es la norma vigente, en coherencia con el RD 207/2024.'},
+  {id:'e3', q:'¿Cuántas categorías tiene la Escala Ejecutiva del CNP?',
+   opts:['Una','Dos: Inspector Jefe e Inspector','Dos: Comisario Principal y Comisario'], correct:1,
+   expl:'La Escala Ejecutiva tiene dos categorías: Inspector Jefe (1ª) e Inspector (2ª).'},
+  {id:'e4', q:'¿Cuál es el plazo máximo para resolver y notificar un procedimiento disciplinario desde el acuerdo de incoación?',
+   opts:['Tres meses','Seis meses','Un año'], correct:1,
+   expl:'El art. 46 establece un plazo máximo de seis meses desde la incoación del expediente.'},
+  {id:'e5', q:'¿Qué unidad tiene encomendada la investigación de la trata de seres humanos y el tráfico de personas?',
+   opts:['UDYCO','UCRIF (Unidad Central de Redes de Inmigración y Falsedades Documentales)','UDEV'], correct:1,
+   expl:'La UCRIF, dependiente de la Comisaría General de Extranjería y Fronteras, coordina la Brigada Central contra la Trata de Seres Humanos y la Brigada de Investigación de Redes.'},
+  {id:'e6', q:'¿Cuáles son las categorías de la Escala Básica?',
+   opts:['Policía y Subinspector','Oficial de Policía y Policía','Inspector y Oficial de Policía'], correct:1,
+   expl:'La Escala Básica tiene dos categorías: 1ª Oficial de Policía, 2ª Policía.'},
+  {id:'e7', q:'¿Cuál es el requisito de titulación para acceder a la categoría de Inspector por turno libre?',
+   opts:['Título de bachiller','Título universitario oficial de grado','Título de ESO'], correct:1,
+   expl:'Para el acceso a Inspector se exige título universitario oficial de grado; para Policía, título de bachiller o equivalente.'},
+  {id:'e8', q:'¿Quién es competente para imponer la sanción de separación del servicio por faltas muy graves?',
+   opts:['El Director General de la Policía','El Secretario de Estado de Seguridad','El Ministro del Interior'], correct:2,
+   expl:'La separación del servicio por falta muy grave la impone el Ministro del Interior (art. 13).'},
+  {id:'e9', q:'¿Qué situación administrativa da derecho a percibir las retribuciones del puesto o cargo desempeñado y no las de funcionario de la Policía Nacional?',
+   opts:['Servicio activo','Segunda actividad','Servicios especiales'], correct:2,
+   expl:'En servicios especiales se perciben las retribuciones del puesto o cargo desempeñado, sin perjuicio del derecho a los trienios.'},
+  {id:'e10', q:'¿Cuántos años de excedencia por cuidado de cada hijo se pueden solicitar como máximo?',
+   opts:['Uno','Dos','Tres'], correct:2,
+   expl:'El período de excedencia por cuidado de hijos no puede superar los tres años.'},
+  {id:'e11', q:'¿Qué Comisaría General organiza y gestiona la prevención y restablecimiento del orden y la seguridad ciudadana?',
+   opts:['Comisaría General de Información','Comisaría General de Seguridad Ciudadana','Comisaría General de Extranjería y Fronteras'], correct:1,
+   expl:'La Comisaría General de Seguridad Ciudadana organiza y gestiona la prevención y restablecimiento del orden y la seguridad ciudadana.'},
+  {id:'e12', q:'¿En qué localidad radica la sede del Centro de Prácticas Operativas del Centro de Actualización y Especialización?',
+   opts:['Ávila','Madrid','Linares (Jaén)'], correct:2,
+   expl:'El Centro de Prácticas Operativas tiene su sede en Linares (Jaén).'},
+  {id:'e13', q:'¿Cuál de estas es una causa de pérdida de la condición de funcionario de la Policía Nacional?',
+   opts:['La excedencia voluntaria','La sanción disciplinaria de separación del servicio firme','El traslado forzoso'], correct:1,
+   expl:'Entre las causas de pérdida de la condición de funcionario está la sanción disciplinaria de separación del servicio con carácter firme.'},
+  {id:'e14', q:'¿Qué principio NO rige el ingreso en la Policía Nacional (sí la promoción interna)?',
+   opts:['Igualdad','Mérito','Antigüedad'], correct:2,
+   expl:'El ingreso se rige por igualdad, mérito y capacidad; la antigüedad interviene en la promoción interna, no en el ingreso.'},
+  {id:'e15', q:'¿Quién es competente para la imposición de sanciones por faltas leves cometidas por funcionarios de una Jefatura Superior?',
+   opts:['El Ministro del Interior','El Director General de la Policía','Los Delegados del Gobierno o los Jefes Superiores de Policía, según el caso'], correct:2,
+   expl:'Para faltas leves son competentes, entre otros, los Delegados del Gobierno y los Jefes Superiores de Policía respecto de su personal dependiente.'},
+];
+const EXAM_ROUND_SIZE = 10;
+
+/* =========================================================
+   MOTOR: MEMORICE (rotación por ronda)
+   ========================================================= */
+let memoSelU=null, memoSelF=null, memoMatched=0, memoErrCount=0, memoRoundPairs=[];
+function initMemo(){
+  document.getElementById('memoComplete').style.display='none';
+  document.getElementById('memoPanel').style.display='grid';
+  memoSelU=null; memoSelF=null; memoMatched=0; memoErrCount=0;
+  memoRoundPairs = pickRotatingSet(MEMO_PAIRS, 'memo', MEMO_ROUND_SIZE);
+
+  const left = document.getElementById('memoLeft');
+  const right = document.getElementById('memoRight');
+  left.innerHTML=''; right.innerHTML='';
+
+  const units = shuffle(memoRoundPairs.map(p=>({id:p.id,val:p.u})));
+  const funcs = shuffle(memoRoundPairs.map(p=>({id:p.id,val:p.f})));
+
+  units.forEach(u=>{
+    const d = document.createElement('div');
+    d.className='memo-item'; d.textContent=u.val; d.dataset.pairid=u.id;
+    d.onclick = ()=>selectMemo('u', d);
+    left.appendChild(d);
+  });
+  funcs.forEach(f=>{
+    const d = document.createElement('div');
+    d.className='memo-item'; d.textContent=f.val; d.dataset.pairid=f.id;
+    d.onclick = ()=>selectMemo('f', d);
+    right.appendChild(d);
+  });
+  document.getElementById('memoErrors').textContent='Errores: 0';
+  updateMemoHud();
+}
+function selectMemo(side, el){
+  if(el.classList.contains('matched')) return;
+  if(side==='u'){
+    if(memoSelU) memoSelU.classList.remove('selected');
+    memoSelU = el; el.classList.add('selected');
+  } else {
+    if(memoSelF) memoSelF.classList.remove('selected');
+    memoSelF = el; el.classList.add('selected');
+  }
+  if(memoSelU && memoSelF){
+    if(memoSelU.dataset.pairid === memoSelF.dataset.pairid){
+      markSeen('memo', memoSelU.dataset.pairid);
+      memoSelU.classList.add('matched'); memoSelF.classList.add('matched');
+      memoSelU.classList.remove('selected'); memoSelF.classList.remove('selected');
+      memoMatched++;
+      addXP(15);
+      memoSelU=null; memoSelF=null;
+      if(memoMatched===memoRoundPairs.length){
+        setTimeout(finishMemo, 250);
+      }
+    } else {
+      memoSelU.classList.add('wrongflash'); memoSelF.classList.add('wrongflash');
+      memoErrCount++;
+      addXP(-3);
+      const u = memoSelU, f = memoSelF;
+      setTimeout(()=>{
+        u.classList.remove('selected','wrongflash');
+        f.classList.remove('selected','wrongflash');
+      }, 500);
+      memoSelU=null; memoSelF=null;
+    }
+    document.getElementById('memoErrors').textContent='Errores: '+memoErrCount;
+  }
+  updateMemoHud();
+}
+function updateMemoHud(){
+  document.getElementById('memoScore').textContent='Parejas: '+memoMatched+'/'+memoRoundPairs.length;
+}
+function finishMemo(){
+  addXP(40);
+  document.getElementById('memoPanel').style.display='none';
+  const c = document.getElementById('memoComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>🧩 ¡Todas las parejas correctas!</h3>'+
+    '<div class="score mono">'+memoMatched+'/'+memoRoundPairs.length+'</div>'+
+    '<p>Errores: '+memoErrCount+' · +40 XP de bonus</p>'+
+    '<div class="actions"><button onclick="initMemo()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* =========================================================
+   MOTOR: VERDADERO / FALSO CRONOMETRADO (rotación por ronda)
+   ========================================================= */
+let vfRound=[], vfIdx=0, vfCombo=1, vfTimerHandle=null, vfTimeLeft=15, vfCorrect=0, vfAnswered=false;
+function initVF(){
+  document.getElementById('vfComplete').style.display='none';
+  document.getElementById('vfPanel').style.display='block';
+  vfRound = pickRotatingSet(VF_BANK, 'vf', VF_ROUND_SIZE);
+  vfIdx=0; vfCombo=1; vfCorrect=0;
+  document.getElementById('vfCombo').textContent='x1';
+  showVF();
+}
+function showVF(){
+  clearInterval(vfTimerHandle);
+  if(vfIdx>=vfRound.length){
+    finishVF();
+    return;
+  }
+  vfAnswered = false;
+  document.getElementById('vfBtnTrue').disabled = false;
+  document.getElementById('vfBtnFalse').disabled = false;
+  document.querySelector('#screen-vf .vf-buttons').style.display='flex';
+  const item = vfRound[vfIdx];
+  document.getElementById('vfStatement').textContent = item.s;
+  document.getElementById('vfFeedback').textContent = '';
+  document.getElementById('vfProgress').textContent = 'Pregunta '+(vfIdx+1)+'/'+vfRound.length;
+  vfTimeLeft = 15;
+  document.getElementById('vfTimer').textContent = '⏱ '+vfTimeLeft+'s';
+  vfTimerHandle = setInterval(()=>{
+    vfTimeLeft--;
+    document.getElementById('vfTimer').textContent = '⏱ '+vfTimeLeft+'s';
+    if(vfTimeLeft<=0){
+      clearInterval(vfTimerHandle);
+      answerVF(null, true);
+    }
+  }, 1000);
+}
+function answerVF(val, timeout){
+  if(vfAnswered) return;
+  vfAnswered = true;
+  clearInterval(vfTimerHandle);
+  document.getElementById('vfBtnTrue').disabled = true;
+  document.getElementById('vfBtnFalse').disabled = true;
+  const item = vfRound[vfIdx];
+  markSeen('vf', item.id);
+  const fb = document.getElementById('vfFeedback');
+  if(!timeout && val===item.a){
+    vfCombo = Math.min(vfCombo+1, 5);
+    vfCorrect++;
+    addXP(8*vfCombo);
+    fb.textContent = '✅ ¡Correcto! +'+(8*vfCombo)+' XP';
+    fb.className='feedback ok';
+  } else {
+    vfCombo = 1;
+    addXP(-2);
+    fb.textContent = timeout ? '⌛ Se acabó el tiempo. ' : '❌ Incorrecto. ';
+    if(item.expl) fb.textContent += item.expl;
+    fb.className='feedback bad';
+  }
+  document.getElementById('vfCombo').textContent = 'x'+vfCombo;
+  vfIdx++;
+  setTimeout(showVF, 1600);
+}
+function finishVF(){
+  document.getElementById('vfPanel').style.display='none';
+  const c = document.getElementById('vfComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>⚡ ¡Ronda completa!</h3>'+
+    '<div class="score mono">'+vfCorrect+'/'+vfRound.length+'</div>'+
+    '<p>Sigue así para desbloquear más rango.</p>'+
+    '<div class="actions"><button onclick="initVF()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* =========================================================
+   MOTOR: NUMERITOS (rotación por ronda + comparación flexible)
+   ========================================================= */
+let numRound=[], numIdx=0, numCorrect=0, numAnswered=false;
+function initNum(){
+  document.getElementById('numComplete').style.display='none';
+  document.getElementById('numPanel').style.display='block';
+  numRound = pickRotatingSet(NUM_BANK, 'num', NUM_ROUND_SIZE);
+  numIdx=0; numCorrect=0;
+  document.querySelector('#screen-num .num-input-row').style.display='flex';
+  showNum();
+}
+function showNum(){
+  if(numIdx>=numRound.length){
+    finishNum();
+    return;
+  }
+  numAnswered = false;
+  const item = numRound[numIdx];
+  document.getElementById('numStatement').textContent = item.q;
+  document.getElementById('numInput').value='';
+  document.getElementById('numFeedback').textContent='';
+  document.getElementById('numProgress').textContent = 'Pregunta '+(numIdx+1)+'/'+numRound.length;
+  document.getElementById('numInput').focus();
+}
+function answerNum(){
+  if(numAnswered || numIdx>=numRound.length) return;
+  numAnswered = true;
+  const item = numRound[numIdx];
+  markSeen('num', item.id);
+  const val = document.getElementById('numInput').value;
+  const fb = document.getElementById('numFeedback');
+  if(normalizeAnswer(val) === normalizeAnswer(item.a)){
+    numCorrect++;
+    addXP(12);
+    fb.textContent = '✅ ¡Correcto! +12 XP';
+    fb.className='feedback ok';
+  } else {
+    addXP(-2);
+    fb.textContent = '❌ La respuesta correcta era: '+item.a;
+    fb.className='feedback bad';
+  }
+  document.getElementById('numScoreLabel').textContent = 'Aciertos: '+numCorrect;
+  numIdx++;
+  setTimeout(showNum, 1600);
+}
+document.getElementById('numInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') answerNum();
+});
+function finishNum(){
+  document.getElementById('numPanel').style.display='none';
+  const c = document.getElementById('numComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>🔢 ¡Ronda completa!</h3>'+
+    '<div class="score mono">'+numCorrect+'/'+numRound.length+'</div>'+
+    '<p>Los numeritos son de lo que más se pregunta en examen. ¡Repite hasta dominarlos!</p>'+
+    '<div class="actions"><button onclick="initNum()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* =========================================================
+   MOTOR: EXPEDIENTE DISCIPLINARIO
+   ========================================================= */
+let casoRound=[], casoIdx=0, casoPerfect=0, casoAnswered=false;
+let casoSel = {gravedad:null, sancion:null, organo:null};
+
+function initCaso(){
+  document.getElementById('casoComplete').style.display='none';
+  document.getElementById('casoPanel').style.display='block';
+  casoRound = pickRotatingSet(CASES, 'caso', CASO_ROUND_SIZE);
+  casoIdx=0; casoPerfect=0;
+  showCaso();
+}
+function buildChipRow(containerId, options, group){
+  const row = document.getElementById(containerId);
+  row.innerHTML='';
+  options.forEach(opt=>{
+    const chip = document.createElement('div');
+    chip.className='caso-chip';
+    chip.textContent = opt;
+    chip.dataset.value = opt;
+    chip.onclick = ()=>selectCasoChip(group, opt, chip);
+    row.appendChild(chip);
+  });
+}
+function showCaso(){
+  document.getElementById('casoNextBtn').style.display='none';
+  document.getElementById('casoExplain').style.display='none';
+  document.getElementById('casoCheckBtn').style.display='inline-block';
+  document.getElementById('casoCheckBtn').disabled = true;
+  if(casoIdx>=casoRound.length){
+    finishCaso();
+    return;
+  }
+  casoAnswered = false;
+  casoSel = {gravedad:null, sancion:null, organo:null};
+  const item = casoRound[casoIdx];
+  document.getElementById('casoScenario').textContent = item.scenario;
+  document.getElementById('casoProgress').textContent = 'Caso '+(casoIdx+1)+'/'+casoRound.length;
+  buildChipRow('casoGravedadRow', GRAVEDAD_OPTS, 'gravedad');
+  buildChipRow('casoSancionRow', SANCION_OPTS, 'sancion');
+  buildChipRow('casoOrganoRow', ORGANO_OPTS, 'organo');
+}
+function selectCasoChip(group, value, chipEl){
+  if(casoAnswered) return;
+  const row = chipEl.parentElement;
+  [...row.children].forEach(c=>c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  casoSel[group] = value;
+  document.getElementById('casoCheckBtn').disabled = !(casoSel.gravedad && casoSel.sancion && casoSel.organo);
+}
+function checkCaso(){
+  if(casoAnswered) return;
+  casoAnswered = true;
+  const item = casoRound[casoIdx];
+  markSeen('caso', item.id);
+
+  const groups = [
+    {key:'gravedad', containerId:'casoGravedadRow', correctVal:item.gravedad},
+    {key:'sancion', containerId:'casoSancionRow', correctVal:item.sancion},
+    {key:'organo', containerId:'casoOrganoRow', correctVal:item.organo},
+  ];
+  let correctCount = 0;
+  groups.forEach(g=>{
+    const row = document.getElementById(g.containerId);
+    [...row.children].forEach(chip=>{
+      chip.classList.add('disabled');
+      const isCorrectAnswer = chip.dataset.value === g.correctVal;
+      const wasSelected = chip.classList.contains('selected');
+      if(isCorrectAnswer) chip.classList.add('correct');
+      if(wasSelected && !isCorrectAnswer) chip.classList.add('incorrect');
+    });
+    if(casoSel[g.key] === g.correctVal) correctCount++;
+  });
+
+  const xpEarned = correctCount*10;
+  addXP(xpEarned - (3-correctCount)*3);
+  if(correctCount===3) casoPerfect++;
+
+  document.getElementById('casoScoreLabel').textContent = 'Expedientes perfectos: '+casoPerfect;
+  const ex = document.getElementById('casoExplain');
+  ex.innerHTML = '<strong>'+correctCount+'/3 correctos.</strong> '+item.expl;
+  ex.style.display = 'block';
+  document.getElementById('casoCheckBtn').style.display='none';
+  document.getElementById('casoNextBtn').style.display='inline-block';
+}
+function nextCaso(){
+  casoIdx++;
+  showCaso();
+}
+function finishCaso(){
+  addXP(30);
+  document.getElementById('casoPanel').style.display='none';
+  const c = document.getElementById('casoComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>🗂️ ¡Ronda de expedientes completa!</h3>'+
+    '<div class="score mono">'+casoPerfect+'/'+casoRound.length+' perfectos</div>'+
+    '<p>Un expediente "perfecto" acierta gravedad, sanción y órgano competente a la vez. +30 XP de bonus.</p>'+
+    '<div class="actions"><button onclick="initCaso()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* =========================================================
+   MOTOR: SITUACIONES ADMINISTRATIVAS
+   ========================================================= */
+let sitRound=[], sitIdx=0, sitPerfect=0, sitAnswered=false;
+let sitSel = {situacion:null, computa:null};
+
+function initSit(){
+  document.getElementById('sitComplete').style.display='none';
+  document.getElementById('sitPanel').style.display='block';
+  sitRound = pickRotatingSet(SIT_CASES, 'sit', SIT_ROUND_SIZE);
+  sitIdx=0; sitPerfect=0;
+  showSit();
+}
+function buildSitChipRow(containerId, options, group){
+  const row = document.getElementById(containerId);
+  row.innerHTML='';
+  options.forEach(opt=>{
+    const chip = document.createElement('div');
+    chip.className='caso-chip';
+    chip.textContent = opt;
+    chip.dataset.value = opt;
+    chip.onclick = ()=>selectSitChip(group, opt, chip);
+    row.appendChild(chip);
+  });
+}
+function showSit(){
+  document.getElementById('sitNextBtn').style.display='none';
+  document.getElementById('sitExplain').style.display='none';
+  document.getElementById('sitCheckBtn').style.display='inline-block';
+  document.getElementById('sitCheckBtn').disabled = true;
+  if(sitIdx>=sitRound.length){
+    finishSit();
+    return;
+  }
+  sitAnswered = false;
+  sitSel = {situacion:null, computa:null};
+  const item = sitRound[sitIdx];
+  document.getElementById('sitScenario').textContent = item.scenario;
+  document.getElementById('sitProgress').textContent = 'Caso '+(sitIdx+1)+'/'+sitRound.length;
+  buildSitChipRow('sitSituacionRow', SITUACION_OPTS, 'situacion');
+  buildSitChipRow('sitComputaRow', COMPUTA_OPTS, 'computa');
+}
+function selectSitChip(group, value, chipEl){
+  if(sitAnswered) return;
+  const row = chipEl.parentElement;
+  [...row.children].forEach(c=>c.classList.remove('selected'));
+  chipEl.classList.add('selected');
+  sitSel[group] = value;
+  document.getElementById('sitCheckBtn').disabled = !(sitSel.situacion && sitSel.computa);
+}
+function checkSit(){
+  if(sitAnswered) return;
+  sitAnswered = true;
+  const item = sitRound[sitIdx];
+  markSeen('sit', item.id);
+
+  const groups = [
+    {key:'situacion', containerId:'sitSituacionRow', correctVal:item.situacion},
+    {key:'computa', containerId:'sitComputaRow', correctVal:item.computa},
+  ];
+  let correctCount = 0;
+  groups.forEach(g=>{
+    const row = document.getElementById(g.containerId);
+    [...row.children].forEach(chip=>{
+      chip.classList.add('disabled');
+      const isCorrectAnswer = chip.dataset.value === g.correctVal;
+      const wasSelected = chip.classList.contains('selected');
+      if(isCorrectAnswer) chip.classList.add('correct');
+      if(wasSelected && !isCorrectAnswer) chip.classList.add('incorrect');
+    });
+    if(sitSel[g.key] === g.correctVal) correctCount++;
+  });
+
+  const xpEarned = correctCount*12;
+  addXP(xpEarned - (2-correctCount)*3);
+  if(correctCount===2) sitPerfect++;
+
+  document.getElementById('sitScoreLabel').textContent = 'Perfectos: '+sitPerfect;
+  const ex = document.getElementById('sitExplain');
+  ex.innerHTML = '<strong>'+correctCount+'/2 correctos.</strong> '+item.expl;
+  ex.style.display = 'block';
+  document.getElementById('sitCheckBtn').style.display='none';
+  document.getElementById('sitNextBtn').style.display='inline-block';
+}
+function nextSit(){
+  sitIdx++;
+  showSit();
+}
+function finishSit(){
+  addXP(30);
+  document.getElementById('sitPanel').style.display='none';
+  const c = document.getElementById('sitComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>📋 ¡Ronda de situaciones completa!</h3>'+
+    '<div class="score mono">'+sitPerfect+'/'+sitRound.length+' perfectos</div>'+
+    '<p>Un caso "perfecto" acierta la situación administrativa y si computa antigüedad. +30 XP de bonus.</p>'+
+    '<div class="actions"><button onclick="initSit()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* =========================================================
+   MOTOR: EXAMEN ADAPTATIVO (Leitner: prioriza lo peor dominado)
+   ========================================================= */
+let examRound=[], examIdx=0, examCorrect=0, examAnswered=false;
+function initExam(){
+  document.getElementById('examComplete').style.display='none';
+  document.getElementById('examPanel').style.display='block';
+  const withBox = EXAM_BANK.map(item=>({item, box: state.leitron[item.id]||0}));
+  const shuffled = shuffle(withBox);
+  shuffled.sort((a,b)=>a.box-b.box); // menor caja (peor dominado) primero
+  examRound = shuffled.slice(0, Math.min(EXAM_ROUND_SIZE, EXAM_BANK.length)).map(x=>x.item);
+  examIdx=0; examCorrect=0;
+  showExam();
+}
+function showExam(){
+  document.getElementById('examNextBtn').style.display='none';
+  document.getElementById('examExplain').style.display='none';
+  if(examIdx>=examRound.length){
+    finishExam();
+    return;
+  }
+  examAnswered = false;
+  const item = examRound[examIdx];
+  document.getElementById('examStatement').textContent = item.q;
+  document.getElementById('examProgress').textContent = 'Pregunta '+(examIdx+1)+'/'+examRound.length;
+  const optsDiv = document.getElementById('examOptions');
+  optsDiv.innerHTML='';
+  const order = shuffle(item.opts.map((o,i)=>i));
+  order.forEach(origIdx=>{
+    const b = document.createElement('button');
+    b.className='exam-opt';
+    b.textContent = item.opts[origIdx];
+    b.onclick = ()=>answerExam(origIdx, item);
+    optsDiv.appendChild(b);
+  });
+}
+function answerExam(chosenIdx, item){
+  if(examAnswered) return;
+  examAnswered = true;
+  const opts = document.querySelectorAll('#examOptions .exam-opt');
+  opts.forEach(b=>{
+    const idx = item.opts.indexOf(b.textContent);
+    if(idx===item.correct) b.classList.add('correct');
+    if(b.textContent===item.opts[chosenIdx] && chosenIdx!==item.correct) b.classList.add('incorrect');
+  });
+  const curBox = state.leitron[item.id] || 0;
+  if(chosenIdx===item.correct){
+    examCorrect++;
+    addXP(20);
+    state.leitron[item.id] = Math.min(curBox+1, 5);
+  } else {
+    addXP(-4);
+    state.leitron[item.id] = 0;
+  }
+  saveState();
+  document.getElementById('examScoreLabel').textContent = 'Aciertos: '+examCorrect;
+  const ex = document.getElementById('examExplain');
+  ex.textContent = item.expl || '';
+  ex.style.display = item.expl ? 'block' : 'none';
+  document.getElementById('examNextBtn').style.display='inline-block';
+}
+function nextExam(){
+  examIdx++;
+  showExam();
+}
+function finishExam(){
+  addXP(30);
+  document.getElementById('examPanel').style.display='none';
+  const c = document.getElementById('examComplete');
+  c.style.display='block';
+  c.innerHTML = '<h3>📝 ¡Examen completo!</h3>'+
+    '<div class="score mono">'+examCorrect+'/'+examRound.length+'</div>'+
+    '<p>La próxima ronda priorizará automáticamente lo que más hayas fallado. +30 XP de bonus.</p>'+
+    '<div class="actions"><button onclick="initExam()">🔁 Otra ronda</button><button class="ghost" onclick="backToMenu()">🏠 Menú</button></div>';
+}
+
+/* ---------- Utils ---------- */
+function shuffle(arr){
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+</script>
+</body>
+</html>
